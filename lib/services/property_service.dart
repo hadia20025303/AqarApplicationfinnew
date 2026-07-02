@@ -7,6 +7,7 @@ import '../core/network/api_constants.dart';
 import '../models/property_model.dart';
 import '../models/user_model.dart';
 import 'auth_service.dart';
+import 'package:http_parser/http_parser.dart';
 
 class PropertyService extends ApiClient {
   final AuthService _authService = AuthService();
@@ -135,31 +136,58 @@ class PropertyService extends ApiClient {
 
   // --- بقية الدوال (إضافة عقار، بحث، بروفايل) ---
 
+// lib/services/property_service.dart (الجزء المعدل)
 Future<bool> postPropertyWithImages(Map<String, dynamic> data, List<File> images) async {
-    return await _guardedRequest(() async {
-      final request = http.MultipartRequest('POST', Uri.parse(ApiConstants.properties));
-      request.headers.addAll(await getHeaders(isProtected: true));
+  return await _guardedRequest(() async {
+    // تحقق من وجود البيانات الأساسية
+    if (data['location'] == null ||
+        data['location']['country'] == null ||
+        data['location']['city'] == null) {
+      throw Exception('الدولة والمدينة مطلوبان');
+    }
 
-      // إضافة جميع البيانات كـ JSON واحد في حقل 'data'
-      request.fields['data'] = jsonEncode(data);
+    final request = http.MultipartRequest('POST', Uri.parse(ApiConstants.properties));
+    request.headers.addAll(await getHeaders(isProtected: true));
 
-      // إضافة الصور (المفتاح 'uploaded_images' كما هو في الـ Serializer)
-      for (final image in images) {
-        request.files.add(
-          await http.MultipartFile.fromPath('uploaded_images', image.path),
-        );
-      }
+    // إضافة البيانات كـ JSON
+    request.fields['data'] = jsonEncode(data);
 
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+    // إضافة الصور
+    for (final image in images) {
+      final file = await http.MultipartFile.fromPath(
+        'uploaded_images',
+        image.path,
+        contentType: MediaType('image', 'jpeg'), // تحديد النوع
+      );
+      request.files.add(file);
+    }
 
-      // طباعة للتصحيح (يمكن إزالتها في الإنتاج)
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
 
-      return response.statusCode == 201 || response.statusCode == 200;
-    });
-  }
+    // طباعة للتصحيح
+    debugPrint('Status: ${response.statusCode}');
+    debugPrint('Body: ${response.body}');
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return true;
+    } else {
+      // محاولة استخراج رسالة الخطأ من الـ API
+      String errorMsg = 'فشل الحفظ: ${response.statusCode}';
+      try {
+        final errorBody = jsonDecode(response.body);
+        if (errorBody is Map && errorBody.containsKey('detail')) {
+          errorMsg = errorBody['detail'];
+        } else if (errorBody is Map && errorBody.containsKey('errors')) {
+          errorMsg = errorBody['errors'].toString();
+        } else if (errorBody is String) {
+          errorMsg = errorBody;
+        }
+      } catch (_) {}
+      throw Exception(errorMsg);
+    }
+  });
+}
 
 
   Future<List<Map<String, dynamic>>> searchUsers(String query) async {
