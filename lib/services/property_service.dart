@@ -77,8 +77,8 @@ class PropertyService extends ApiClient {
       }
 
       final List<PropertyModel> favorites = list
-          .where((item) => item['property'] != null && item['property'] is Map)
-          .map((item) => PropertyModel.fromJson(item['property'] as Map<String, dynamic>))
+          .where((item) => item['property_details'] != null && item['property_details'] is Map)
+          .map((item) => PropertyModel.fromJson(item['property_details'] as Map<String, dynamic>))
           .toList();
 
       // تحديث الكاش المحلي من السيرفر لضمان المزامنة
@@ -121,7 +121,7 @@ class PropertyService extends ApiClient {
   Future<bool> removeFavorite(int id) async {
     return await _guardedRequest(() async {
       final response = await request(() async => http.delete(
-        Uri.parse("${ApiConstants.favorites}?property=$id"),
+        Uri.parse("${ApiConstants.favorites}$id/"),
         headers: await getHeaders(isProtected: true),
       ));
 
