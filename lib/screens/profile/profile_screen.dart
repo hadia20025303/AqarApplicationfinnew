@@ -7,6 +7,7 @@ import 'edit_profile_screen.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/profile_status_badge.dart';
 import 'widgets/profile_info_card.dart';
+import '../my_listings/my_properties_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -61,12 +62,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               children: [
                 ProfileHeader(user: user),
-                const SizedBox(height: 24),
-                _buildBadgesRow(user),
-                const SizedBox(height: 35),
-                _buildInfoSection(user),
-                const SizedBox(height: 40),
-                _buildFooterText(),
+              const SizedBox(height: 24),
+              _buildBadgesRow(user),
+              const SizedBox(height: 35),
+              _buildInfoSection(user),
+              const SizedBox(height: 20),
+              _buildManagePropertiesButton(),
+              const SizedBox(height: 40),
+              _buildFooterText(),
               ],
             ),
           ),
@@ -126,9 +129,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ProfileInfoCard(icon: Icons.phone_android_outlined, title: 'رقم الهاتف', value: user.phone ?? 'غير محدد للآن'),
         if (user.description != null && user.description!.isNotEmpty) ...[
           const SizedBox(height: 14),
-          ProfileInfoCard(icon: Icons.description_outlined, title: 'نبذة تعريفية', value: user.description!),
+          ProfileInfoCard(icon: Icons.description_outlined, title: 'نبذة تعريفية', value: user.description!),        
         ],
-      ],
+      ],     
+    );   
+  }
+
+  Widget _buildManagePropertiesButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MyPropertiesScreen()),
+          );
+        },
+        icon: const Icon(Icons.house_outlined),
+        label: const Text('إدارة عقاراتي', style: TextStyle(fontSize: 16)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.goldAccent,
+          foregroundColor: AppTheme.secondaryDark,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
     );
   }
 

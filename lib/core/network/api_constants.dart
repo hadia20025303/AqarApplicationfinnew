@@ -12,6 +12,7 @@ class ApiConstants {
 
   // Properties Endpoints
   static const String properties = "$baseUrl/properties/properties/";
+  static const String myListings = "$baseUrl/properties/properties/my-listings/";
   static const String favorites = "$baseUrl/interactions/favorites/";
   static const String searchUsers = "$baseUrl/users/search/"; // أضف هذا السطر إذا لم يكن موجوداً
   // Messaging Endpoints

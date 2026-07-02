@@ -178,4 +178,43 @@ Future<bool> postPropertyWithImages(Map<String, dynamic> data, List<File> images
     return null;
     }
   }
+Future<List<PropertyModel>> getMyListings() async {
+  try {
+    final response = await _guardedRequest(() async {
+      return await http.get(
+        Uri.parse(ApiConstants.myListings),
+        headers: await getHeaders(isProtected: true),
+      );
+    });
+    final List data = handleResponse(response);
+    return data.map((json) => PropertyModel.fromJson(json)).toList();
+  } catch (e) {
+    return [];
+  }
+}
+
+Future<bool> updateProperty(int propertyId, Map<String, dynamic> data, {List<File>? images}) async {
+  return await _guardedRequest(() async {
+    final request = http.MultipartRequest('PUT', Uri.parse('${ApiConstants.properties}$propertyId/'));
+    request.headers.addAll(await getHeaders(isProtected: true));
+    request.fields['data'] = jsonEncode(data);
+    if (images != null) {
+      for (final image in images) {
+        request.files.add(await http.MultipartFile.fromPath('uploaded_images', image.path));
+      }
+    }
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    return response.statusCode == 200;
+  });
+}
+Future<bool> deleteProperty(int propertyId) async {
+  return await _guardedRequest(() async {
+    final response = await request(() async => http.delete(
+      Uri.parse('${ApiConstants.properties}$propertyId/'),
+      headers: await getHeaders(isProtected: true),
+    ));
+    return response.statusCode == 204;
+  });
+}
 }
