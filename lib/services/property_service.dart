@@ -77,8 +77,8 @@ class PropertyService extends ApiClient {
       }
 
       final List<PropertyModel> favorites = list
-          .where((item) => item['property'] != null && item['property'] is Map)
-          .map((item) => PropertyModel.fromJson(item['property'] as Map<String, dynamic>))
+          .where((item) => item['property_details'] != null && item['property_details'] is Map)
+          .map((item) => PropertyModel.fromJson(item['property_details'] as Map<String, dynamic>))
           .toList();
 
       // تحديث الكاش المحلي من السيرفر لضمان المزامنة
@@ -121,7 +121,7 @@ class PropertyService extends ApiClient {
   Future<bool> removeFavorite(int id) async {
     return await _guardedRequest(() async {
       final response = await request(() async => http.delete(
-        Uri.parse("${ApiConstants.favorites}?property=$id"),
+        Uri.parse("${ApiConstants.favorites}$id/"),
         headers: await getHeaders(isProtected: true),
       ));
 
@@ -135,18 +135,32 @@ class PropertyService extends ApiClient {
 
   // --- بقية الدوال (إضافة عقار، بحث، بروفايل) ---
 
-  Future<bool> postPropertyWithImages(Map<String, dynamic> data, List<File> images) async {
+Future<bool> postPropertyWithImages(Map<String, dynamic> data, List<File> images) async {
     return await _guardedRequest(() async {
-      var multiRequest = http.MultipartRequest('POST', Uri.parse(ApiConstants.properties));
-      multiRequest.headers.addAll(await getHeaders(isProtected: true));
-      multiRequest.fields['data'] = jsonEncode(data);
-      for (var image in images) {
-        multiRequest.files.add(await http.MultipartFile.fromPath('uploaded_images', image.path));
+      final request = http.MultipartRequest('POST', Uri.parse(ApiConstants.properties));
+      request.headers.addAll(await getHeaders(isProtected: true));
+
+      // إضافة جميع البيانات كـ JSON واحد في حقل 'data'
+      request.fields['data'] = jsonEncode(data);
+
+      // إضافة الصور (المفتاح 'uploaded_images' كما هو في الـ Serializer)
+      for (final image in images) {
+        request.files.add(
+          await http.MultipartFile.fromPath('uploaded_images', image.path),
+        );
       }
-      final response = await http.Response.fromStream(await multiRequest.send());
-      return response.statusCode == 201;
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // طباعة للتصحيح (يمكن إزالتها في الإنتاج)
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      return response.statusCode == 201 || response.statusCode == 200;
     });
   }
+
 
   Future<List<Map<String, dynamic>>> searchUsers(String query) async {
     return await _guardedRequest(() async {
