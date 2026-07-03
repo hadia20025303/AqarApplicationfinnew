@@ -13,11 +13,21 @@ extension CategoryX on Category {
 }
 
 extension TransactionTypeX on TransactionType {
-  String get displayName => this == TransactionType.sale ? 'بيع' : 'إيجار';
+  String get displayName {
+    switch (this) {
+      case TransactionType.sale: return 'بيع';
+      case TransactionType.rent: return 'إيجار';
+    }
+  }
 }
 
 extension OwnershipTypeX on OwnershipType {
-  String get displayName => this == OwnershipType.freehold ? 'تملك حر' : 'إيجار طويل الأجل';
+  String get displayName {
+    switch (this) {
+      case OwnershipType.freehold: return 'تملك حر';
+      case OwnershipType.leasehold: return 'إيجار طويل الأجل';
+    }
+  }
 }
 
 extension LegalStatusX on LegalStatus {
