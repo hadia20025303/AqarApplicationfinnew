@@ -1,6 +1,6 @@
 // widgets/shared_property_widgets.dart
 import 'package:flutter/material.dart';
-import '../../../theme/app_theme.dart';
+import '../../../../theme/app_theme.dart';
 
 class PropertySectionTitle extends StatelessWidget {
   final String title;
