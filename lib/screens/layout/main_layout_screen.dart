@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 // Imports
 import '../../providers/auth_provider.dart';
-import '../../theme/app_theme.dart';
-
 import '../auth/login_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../home/home_screen.dart';
@@ -11,7 +9,6 @@ import '../messages/conversations_screen.dart';
 import '../profile/profile_screen.dart';
 import '../property/add_property_screen.dart';
 import 'widgets/custom_bottom_nav.dart';
-import '../property/details/property_details_screen.dart';
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
 
