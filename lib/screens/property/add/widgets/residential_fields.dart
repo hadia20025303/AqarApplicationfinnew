@@ -31,46 +31,23 @@ class ResidentialFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const PropertySectionTitle(title: 'تفاصيل السكني'),
-        PropertyTextField(
-          controller: bedroomsCtrl,
-          label: 'عدد غرف النوم',
-          icon: Icons.bed,
-          isNumber: true,
-        ),
+        const PropertySectionTitle(title: 'تفاصيل العقار السكني'),
+        PropertyTextField(controller: bedroomsCtrl, label: 'عدد غرف النوم', icon: Icons.bed, isNumber: true),
         const SizedBox(height: 12),
-        PropertyTextField(
-          controller: bathroomsCtrl,
-          label: 'عدد الحمامات',
-          icon: Icons.bathtub,
-          isNumber: true,
-        ),
+        PropertyTextField(controller: bathroomsCtrl, label: 'عدد الحمامات', icon: Icons.bathtub, isNumber: true),
         const SizedBox(height: 12),
-        PropertyTextField(
-          controller: floorsCtrl,
-          label: 'عدد الطوابق (اختياري)',
-          icon: Icons.layers,
-          isNumber: true,
-          optional: true,
-        ),
+        PropertyTextField(controller: floorsCtrl, label: 'عدد الطوابق (اختياري)', icon: Icons.layers, isNumber: true, optional: true),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: PropertySwitchTile(
-                label: 'حديقة',
-                value: hasGarden,
-                onChanged: onGardenChanged,
-              ),
-            ),
-            Expanded(
-              child: PropertySwitchTile(
-                label: 'مسبح',
-                value: hasPool,
-                onChanged: onPoolChanged,
-              ),
-            ),
+            Expanded(child: PropertySwitchTile(label: 'حديقة', value: hasGarden, onChanged: onGardenChanged)),
+            Expanded(child: PropertySwitchTile(label: 'مسبح', value: hasPool, onChanged: onPoolChanged)),
           ],
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: PropertyNumberCounter(label: 'عدد مواقف السيارات:', value: parkingSpaces, onChanged: onParkingChanged),
         ),
       ],
     );

@@ -36,7 +36,15 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   int _currentStep = 0;
   bool _isLoading = false;
 
-  // Controllers
+  // مفاتيح التحقق من صحة المدخلات لكل خطوة لمنع تخطي الحقول الإجبارية
+  final List<GlobalKey<FormState>> _formKeys = [
+    GlobalKey<FormState>(), // خطوة المعلومات الأساسية
+    GlobalKey<FormState>(), // خطوة تفاصيل الفئة المعينة
+    GlobalKey<FormState>(), // خطوة الموقع والصور
+    GlobalKey<FormState>(), // خطوة التأكيد
+  ];
+
+  // --- التحكم بالنصوص (Controllers) ---
   final _priceController = TextEditingController();
   final _areaController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -44,7 +52,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   final _cityController = TextEditingController();
   final _regionController = TextEditingController();
 
-  // Residential
+  // التفاصيل السكنية (Residential)
   final _bedroomsController = TextEditingController();
   final _bathroomsController = TextEditingController();
   final _floorsController = TextEditingController();
@@ -52,26 +60,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   bool _hasPool = false;
   int _parkingSpaces = 0;
 
-  // Commercial
+  // التفاصيل التجارية (Commercial)
   final _floorNumberController = TextEditingController();
   final _meetingRoomsController = TextEditingController();
   String? _commercialType;
   bool _hasElevator = false;
   int _commercialParking = 0;
 
-  // Industrial
+  // التفاصيل الصناعية (Industrial)
   final _warehouseSizeController = TextEditingController();
   final _powerCapacityController = TextEditingController();
   final _ceilingHeightController = TextEditingController();
   final _loadingDocksController = TextEditingController();
 
-  // Land
+  // تفاصيل الأرض (Land)
   String? _landType;
   bool _roadAccess = false;
   bool _waterSource = false;
   bool _electricityAvailable = false;
 
-  // Selections
+  // الخيارات المحددة (Dropdown Selections)
   Category _selectedCategory = Category.residential;
   TransactionType _selectedTransaction = TransactionType.sale;
   OwnershipType _selectedOwnership = OwnershipType.freehold;
@@ -82,60 +90,20 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
   @override
   void dispose() {
-    for (var c in [
+    final controllers = [
       _priceController, _areaController, _descriptionController,
       _countryController, _cityController, _regionController,
       _bedroomsController, _bathroomsController, _floorsController,
       _floorNumberController, _meetingRoomsController, _warehouseSizeController,
       _powerCapacityController, _ceilingHeightController, _loadingDocksController
-    ]) {
+    ];
+    for (var c in controllers) {
       c.dispose();
     }
     super.dispose();
   }
-// 2. دالة تنظيف وتصفير الشاشة بالكامل بعد النجاح لتفادي مشكلة كاش الـ IndexedStack
-  void _resetForm() {
-    if (!mounted) return;
-    setState(() {
-      _currentStep = 0;
-      _selectedImages.clear();
-      _selectedLocation = null;
-      
-      // تصفير حقول النصوص
-      _priceController.clear();
-      _areaController.clear();
-      _descriptionController.clear();
-      _countryController.clear();
-      _cityController.clear();
-      _regionController.clear();
-      _bedroomsController.clear();
-      _bathroomsController.clear();
-      _floorsController.clear();
-      _floorNumberController.clear();
-      _meetingRoomsController.clear();
-      _warehouseSizeController.clear();
-      _powerCapacityController.clear();
-      _ceilingHeightController.clear();
-      _loadingDocksController.clear();
 
-      // إعادة تعيين الحالات الافتراضية للفئات
-      _selectedCategory = Category.residential;
-      _selectedTransaction = TransactionType.sale;
-      _selectedOwnership = OwnershipType.freehold;
-      _selectedLegalStatus = LegalStatus.registered;
-      _hasGarden = false;
-      _hasPool = false;
-      _parkingSpaces = 0;
-      _commercialType = null;
-      _hasElevator = false;
-      _commercialParking = 0;
-      _landType = null;
-      _roadAccess = false;
-      _waterSource = false;
-      _electricityAvailable = false;
-    });
-  }
-  // --- Logic Helpers ---
+  // --- معالجة الصور (Image Processing) ---
   Future<void> _pickImages() async {
     final List<XFile> images = await ImagePicker().pickMultiImage();
     if (images.isEmpty) return;
@@ -159,6 +127,42 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       debugPrint('Error compressing image: $e');
       return null;
     }
+  }
+
+  // --- إدارة البيانات وإرسالها (Data & Submission Logic) ---
+  void _resetForm() {
+    if (!mounted) return;
+    setState(() {
+      _currentStep = 0;
+      _selectedImages.clear();
+      _selectedLocation = null;
+      
+      final controllers = [
+        _priceController, _areaController, _descriptionController,
+        _countryController, _cityController, _regionController,
+        _bedroomsController, _bathroomsController, _floorsController,
+        _floorNumberController, _meetingRoomsController, _warehouseSizeController,
+        _powerCapacityController, _ceilingHeightController, _loadingDocksController
+      ];
+      for (var c in controllers) {
+        c.clear();
+      }
+
+      _selectedCategory = Category.residential;
+      _selectedTransaction = TransactionType.sale;
+      _selectedOwnership = OwnershipType.freehold;
+      _selectedLegalStatus = LegalStatus.registered;
+      _hasGarden = false;
+      _hasPool = false;
+      _parkingSpaces = 0;
+      _commercialType = null;
+      _hasElevator = false;
+      _commercialParking = 0;
+      _landType = null;
+      _roadAccess = false;
+      _waterSource = false;
+      _electricityAvailable = false;
+    });
   }
 
   void _showSnack(String msg, Color color) {
@@ -232,7 +236,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
   }
 
-Future<void> _submitProperty() async {
+  Future<void> _submitProperty() async {
     if (_selectedImages.isEmpty) {
       _showSnack('الرجاء اختيار صورة واحدة على الأقل', Colors.orange);
       return;
@@ -241,19 +245,12 @@ Future<void> _submitProperty() async {
     setState(() => _isLoading = true);
     try {
       final success = await _propertyService.postPropertyWithImages(_buildPropertyData(), _selectedImages);
-      
       if (mounted && success) {
         _showSnack('تم نشر العقار بنجاح!', Colors.green);
-        
-        // أولاً: نقوم بتصفير الفورم لتجهيزه للمرة القادمة
         _resetForm();
-
-        // ثانياً: التوجيه الذكي لمنع الشاشة السوداء
         if (widget.onPropertyAdded != null) {
-          // إذا كان مستدعى كـ Tab، نقوم بتفعيل الـ Callback للعودة للرئيسية
           widget.onPropertyAdded!();
         } else if (Navigator.canPop(context)) {
-          // إذا استدعي مستقبلاً كشاشة مستقلة نغلقها بشكل طبيعي
           Navigator.pop(context, true);
         }
       }
@@ -264,11 +261,12 @@ Future<void> _submitProperty() async {
     }
   }
 
-  // --- Step Orchestration Routers ---
+  // --- بناء واجهات الخطوات التفاعلية ---
   Widget _buildStepTree(int step) {
+    Widget child;
     switch (step) {
       case 0:
-        return BaseInfoFields(
+        child = BaseInfoFields(
           selectedCategory: _selectedCategory,
           selectedTransaction: _selectedTransaction,
           selectedOwnership: _selectedOwnership,
@@ -281,10 +279,12 @@ Future<void> _submitProperty() async {
           onOwnershipChanged: (v) => setState(() => _selectedOwnership = v!),
           onLegalStatusChanged: (v) => setState(() => _selectedLegalStatus = v!),
         );
+        break;
       case 1:
-        return _buildCategorySpecificStep();
+        child = _buildCategorySpecificStep();
+        break;
       case 2:
-        return LocationImagesFields(
+        child = LocationImagesFields(
           countryCtrl: _countryController,
           cityCtrl: _cityController,
           regionCtrl: _regionController,
@@ -294,8 +294,9 @@ Future<void> _submitProperty() async {
           onClearImages: () => setState(() => _selectedImages.clear()),
           onLocationChanged: (v) => setState(() => _selectedLocation = v),
         );
+        break;
       case 3:
-        return PropertyConfirmationView(
+        child = PropertyConfirmationView(
           propertyData: _buildPropertyData(),
           imagesCount: _selectedImages.length,
           categoryDisplay: _selectedCategory.displayName,
@@ -304,9 +305,13 @@ Future<void> _submitProperty() async {
           legalStatusDisplay: _selectedLegalStatus.displayName,
           onSubmit: _submitProperty,
         );
+        break;
       default:
-        return const SizedBox.shrink();
+        child = const SizedBox.shrink();
     }
+    
+    // احتواء كل خطوة داخل النموذج الخاص بها للتحقق الذكي
+    return Form(key: _formKeys[step], child: child);
   }
 
   Widget _buildCategorySpecificStep() {
@@ -341,6 +346,15 @@ Future<void> _submitProperty() async {
     }
   }
 
+  void _handleStepContinue() {
+    // التحقق من صلاحية مدخلات الخطوة الحالية قبل التوجه للأمام
+    if (_formKeys[_currentStep].currentState?.validate() ?? false) {
+      if (_currentStep < 3) {
+        setState(() => _currentStep++);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -351,15 +365,18 @@ Future<void> _submitProperty() async {
           : Stepper(
               type: StepperType.vertical,
               currentStep: _currentStep,
-              onStepContinue: () { if (_currentStep < 3) setState(() => _currentStep++); },
+              onStepContinue: _handleStepContinue,
               onStepCancel: () { if (_currentStep > 0) setState(() => _currentStep--); },
               controlsBuilder: (context, details) {
                 final isLast = _currentStep == 3;
-                return Row(
-                  children: [
-                    if (!isLast) Expanded(child: ElevatedButton(onPressed: details.onStepContinue, child: const Text('التالي'))),
-                    if (_currentStep > 0) Expanded(child: TextButton(onPressed: details.onStepCancel, child: const Text('السابق'))),
-                  ],
+                return Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Row(
+                    children: [
+                      if (!isLast) Expanded(child: ElevatedButton(onPressed: details.onStepContinue, child: const Text('التالي'))),
+                      if (_currentStep > 0) Expanded(child: TextButton(onPressed: details.onStepCancel, child: const Text('السابق'))),
+                    ],
+                  ),
                 );
               },
               steps: List.generate(4, (index) {
