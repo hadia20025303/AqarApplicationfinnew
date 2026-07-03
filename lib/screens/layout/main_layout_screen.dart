@@ -1,8 +1,7 @@
+// main_layout_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Imports
 import '../../providers/auth_provider.dart';
-import '../../theme/app_theme.dart';
 
 import '../auth/login_screen.dart';
 import '../favorites/favorites_screen.dart';
@@ -11,7 +10,7 @@ import '../messages/conversations_screen.dart';
 import '../profile/profile_screen.dart';
 import '../property/add/add_property_screen.dart';
 import 'widgets/custom_bottom_nav.dart';
-import '../property/details/property_details_screen.dart';
+
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
 
@@ -22,19 +21,26 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   int _selectedIndex = 0;
   int? _pendingIndex;
+  
+  // تغيير القائمة لتصبح late ليتم حقن الـ Callback بنجاح
+  late final List<Widget> _screens;
 
-  // القائمة ثابتة لتحسين الأداء
-  final List<Widget> _screens = const [
-    const HomeScreen(),
-    const FavoritesScreen(),
-    AddPropertyScreen(),
-    const ConversationsScreen(),
-    const ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const HomeScreen(),
+      const FavoritesScreen(),
+      AddPropertyScreen(
+        // عند نجاح الإضافة، يتم توجيه المستخدم لتبويب الرئيسية (Index 0)
+        onPropertyAdded: () => _updateIndex(0),
+      ),
+      const ConversationsScreen(),
+      const ProfileScreen(),
+    ];
+  }
 
-  /// منطق التنقل والتحقق من تسجيل الدخول
   void _onItemTapped(int index) async {
-    // التبويبات التي تتطلب تسجيل دخول: (مفضلة، إضافة، رسائل، بروفايل)
     const protectedIndices = [1, 2, 3, 4];
 
     if (protectedIndices.contains(index)) {
@@ -69,7 +75,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        // IndexedStack يحافظ على حالة كل شاشة (مثلاً موضع السكرول في الهوم)
         body: IndexedStack(index: _selectedIndex, children: _screens),
         bottomNavigationBar: CustomBottomNav(
           currentIndex: _selectedIndex,

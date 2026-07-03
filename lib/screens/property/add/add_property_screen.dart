@@ -23,7 +23,9 @@ enum OwnershipType { freehold, leasehold }
 enum LegalStatus { registered, unregistered, pending }
 
 class AddPropertyScreen extends StatefulWidget {
-  const AddPropertyScreen({super.key});
+  final VoidCallback? onPropertyAdded;
+
+  const AddPropertyScreen({super.key, this.onPropertyAdded});
 
   @override
   State<AddPropertyScreen> createState() => _AddPropertyScreenState();
@@ -91,7 +93,48 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
     super.dispose();
   }
+// 2. دالة تنظيف وتصفير الشاشة بالكامل بعد النجاح لتفادي مشكلة كاش الـ IndexedStack
+  void _resetForm() {
+    if (!mounted) return;
+    setState(() {
+      _currentStep = 0;
+      _selectedImages.clear();
+      _selectedLocation = null;
+      
+      // تصفير حقول النصوص
+      _priceController.clear();
+      _areaController.clear();
+      _descriptionController.clear();
+      _countryController.clear();
+      _cityController.clear();
+      _regionController.clear();
+      _bedroomsController.clear();
+      _bathroomsController.clear();
+      _floorsController.clear();
+      _floorNumberController.clear();
+      _meetingRoomsController.clear();
+      _warehouseSizeController.clear();
+      _powerCapacityController.clear();
+      _ceilingHeightController.clear();
+      _loadingDocksController.clear();
 
+      // إعادة تعيين الحالات الافتراضية للفئات
+      _selectedCategory = Category.residential;
+      _selectedTransaction = TransactionType.sale;
+      _selectedOwnership = OwnershipType.freehold;
+      _selectedLegalStatus = LegalStatus.registered;
+      _hasGarden = false;
+      _hasPool = false;
+      _parkingSpaces = 0;
+      _commercialType = null;
+      _hasElevator = false;
+      _commercialParking = 0;
+      _landType = null;
+      _roadAccess = false;
+      _waterSource = false;
+      _electricityAvailable = false;
+    });
+  }
   // --- Logic Helpers ---
   Future<void> _pickImages() async {
     final List<XFile> images = await ImagePicker().pickMultiImage();
@@ -190,33 +233,36 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   }
 
 Future<void> _submitProperty() async {
-  if (_selectedImages.isEmpty) {
-    _showSnack('الرجاء اختيار صورة واحدة على الأقل', Colors.orange);
-    return;
-  }
-
-  setState(() => _isLoading = true);
-  try {
-    final success = await _propertyService.postPropertyWithImages(_buildPropertyData(), _selectedImages);
-    
-    if (mounted && success) {
-      _showSnack('تم نشر العقار بنجاح!', Colors.green);
-      
-      // ✅ الحل الذكي لمنع الشاشة السوداء
-      if (Navigator.canPop(context)) {
-         // يرجع للشاشة السابقة لو كانت موجودة
-      } else {
-        // إذا لم يكن هناك شاشة سابقة، ننتقل للرئيسية وننظف المكدّس
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false); 
-        // 💡 ملاحظة: استبدل '/home' بالمسار (Route) الخاص بالشاشة الرئيسية في تطبيقك
-      }
+    if (_selectedImages.isEmpty) {
+      _showSnack('الرجاء اختيار صورة واحدة على الأقل', Colors.orange);
+      return;
     }
-  } catch (e) {
-    print('حدث خطأ: ${e.toString()}');
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
+
+    setState(() => _isLoading = true);
+    try {
+      final success = await _propertyService.postPropertyWithImages(_buildPropertyData(), _selectedImages);
+      
+      if (mounted && success) {
+        _showSnack('تم نشر العقار بنجاح!', Colors.green);
+        
+        // أولاً: نقوم بتصفير الفورم لتجهيزه للمرة القادمة
+        _resetForm();
+
+        // ثانياً: التوجيه الذكي لمنع الشاشة السوداء
+        if (widget.onPropertyAdded != null) {
+          // إذا كان مستدعى كـ Tab، نقوم بتفعيل الـ Callback للعودة للرئيسية
+          widget.onPropertyAdded!();
+        } else if (Navigator.canPop(context)) {
+          // إذا استدعي مستقبلاً كشاشة مستقلة نغلقها بشكل طبيعي
+          Navigator.pop(context, true);
+        }
+      }
+    } catch (e) {
+      _showSnack('حدث خطأ: ${e.toString()}', Colors.redAccent);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
-}
 
   // --- Step Orchestration Routers ---
   Widget _buildStepTree(int step) {
