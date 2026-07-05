@@ -8,15 +8,13 @@ import 'package:latlong2/latlong.dart' as latlng;
 import '../../../models/property_model.dart';
 import '../../../services/property_service.dart';
 import '../../../theme/app_theme.dart';
-import '../managing/property_enums.dart'; // استيراد الـ enums الموحدة
-import '../managing/property_extensions.dart';
+import '../managing/property_enums.dart'; 
 import '../managing/widgets/base_info_fields.dart';
 import '../managing/widgets/commercial_fields.dart';
 import '../managing/widgets/industrial_fields.dart';
 import '../managing/widgets/land_fields.dart';
 import '../managing/widgets/location_images_fields.dart';
 import '../managing/widgets/residential_fields.dart';
-import '../managing/widgets/property_confirmation_view.dart';
 
 class EditPropertyScreen extends StatefulWidget {
   final PropertyModel property;

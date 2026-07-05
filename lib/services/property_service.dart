@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import '../core/network/api_client.dart';
 import '../core/network/api_constants.dart';
@@ -218,7 +219,7 @@ Future<List<PropertyModel>> getMyListings() async {
 
 Future<bool> updateProperty(int propertyId, Map<String, dynamic> data, {List<File>? images}) async {
   return await _guardedRequest(() async {
-    final request = http.MultipartRequest('PUT', Uri.parse('${ApiConstants.properties}$propertyId/'));
+    final request = http.MultipartRequest('PATCH', Uri.parse('${ApiConstants.properties}$propertyId/'));
     request.headers.addAll(await getHeaders(isProtected: true));
     request.fields['data'] = jsonEncode(data);
     if (images != null) {
@@ -226,8 +227,12 @@ Future<bool> updateProperty(int propertyId, Map<String, dynamic> data, {List<Fil
         request.files.add(await http.MultipartFile.fromPath('uploaded_images', image.path));
       }
     }
+    debugPrint('Updating property $propertyId with data: $data and ${images?.length ?? 0} images');
+    debugPrint('Request headers: ${request.fields}');
+    
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
+    debugPrint('Response status: ${response.statusCode}, body: ${response.body}');
     return response.statusCode == 200;
   });
 }

@@ -1,9 +1,9 @@
 // widgets/base_info_fields.dart
 import 'package:flutter/material.dart';
 import '../../../../theme/app_theme.dart';
-import '../add_property_screen.dart';
 import '../property_extensions.dart';
 import 'shared_property_widgets.dart';
+import '../property_enums.dart';
 
 class BaseInfoFields extends StatelessWidget {
   final Category selectedCategory;

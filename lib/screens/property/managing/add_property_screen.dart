@@ -16,11 +16,7 @@ import 'widgets/land_fields.dart';
 import 'widgets/base_info_fields.dart';
 import 'widgets/location_images_fields.dart';
 import 'widgets/property_confirmation_view.dart';
-
-enum Category { residential, commercial, industrial, land }
-enum TransactionType { sale, rent }
-enum OwnershipType { freehold, leasehold }
-enum LegalStatus { registered, unregistered, pending }
+import 'property_enums.dart';
 
 class AddPropertyScreen extends StatefulWidget {
   final VoidCallback? onPropertyAdded;
@@ -274,10 +270,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           priceCtrl: _priceController,
           areaCtrl: _areaController,
           descriptionCtrl: _descriptionController,
-          onCategoryChanged: (v) => setState(() => _selectedCategory = v!),
-          onTransactionChanged: (v) => setState(() => _selectedTransaction = v!),
-          onOwnershipChanged: (v) => setState(() => _selectedOwnership = v!),
-          onLegalStatusChanged: (v) => setState(() => _selectedLegalStatus = v!),
+          onCategoryChanged: (v) => setState(() => _selectedCategory = v as Category),
+          onTransactionChanged: (v) => setState(() => _selectedTransaction = v as TransactionType),
+          onOwnershipChanged: (v) => setState(() => _selectedOwnership = v as OwnershipType),
+          onLegalStatusChanged: (v) => setState(() => _selectedLegalStatus = v as LegalStatus),
         );
         break;
       case 1:

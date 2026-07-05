@@ -1,5 +1,5 @@
 // property_extensions.dart
-import 'add_property_screen.dart';
+import 'property_enums.dart';
 
 extension CategoryX on Category {
   String get displayName {
