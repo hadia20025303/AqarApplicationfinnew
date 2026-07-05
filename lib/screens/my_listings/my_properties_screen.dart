@@ -1,12 +1,10 @@
 // lib/screens/my_listings/my_properties_screen.dart
-
+import '../property/edit_property_screen.dart';
 import 'package:flutter/material.dart';
 import '../../models/property_model.dart';
 import '../../services/property_service.dart';
 import '../../theme/app_theme.dart';
-// ✅ تأكد من مطابقة مسار استيراد الـ PropertyCard الصحيح في مشروعك
 import 'widgets/property_card.dart'; 
-import 'add_edit_property_screen.dart';
 
 class MyPropertiesScreen extends StatefulWidget {
   const MyPropertiesScreen({super.key});
@@ -96,17 +94,15 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
   }
 
   // ✅ تم اعتماد اسم الدالة الموحد _navigateToEdit لحل مشكلة undefined_method
-  Future<void> _navigateToEdit(PropertyModel property) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddEditPropertyScreen(existingProperty: property),
-      ),
-    );
-    if (result == true) {
-      _loadProperties(); 
-    }
-  }
+Future<void> _navigateToEdit(PropertyModel property) async {
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => EditPropertyScreen(property: property),
+    ),
+  );
+  if (result == true) _loadProperties();
+}
 
   @override
   Widget build(BuildContext context) {

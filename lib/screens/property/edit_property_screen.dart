@@ -1,22 +1,26 @@
-// lib/screens/property/add_property_screen.dart
+// lib/screens/property/edit_property_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../models/property_model.dart';
 import '../../services/property_service.dart';
+import '../../services/nominatim_service.dart';
 import '../../theme/app_theme.dart';
 import './property_enums.dart';
 
 
-class AddPropertyScreen extends StatefulWidget {
-  const AddPropertyScreen({super.key});
+class EditPropertyScreen extends StatefulWidget {
+  final PropertyModel property;
+  const EditPropertyScreen({super.key, required this.property});
 
   @override
-  State<AddPropertyScreen> createState() => _AddPropertyScreenState();
+  State<EditPropertyScreen> createState() => _EditPropertyScreenState();
 }
 
-class _AddPropertyScreenState extends State<AddPropertyScreen> {
+class _EditPropertyScreenState extends State<EditPropertyScreen> {
   final _formKey = GlobalKey<FormState>();
   final PropertyService _propertyService = PropertyService();
+  final NominatimService _nominatimService = NominatimService();
 
   // --- متحكمات الحقول الأساسية ---
   final _priceController = TextEditingController();
@@ -25,6 +29,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   final _countryController = TextEditingController();
   final _cityController = TextEditingController();
   final _regionController = TextEditingController();
+  final _latController = TextEditingController();
+  final _lngController = TextEditingController();
 
   // --- متحكمات التفاصيل حسب الفئة ---
   // سكني
@@ -61,26 +67,101 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   LegalStatus _selectedLegalStatus = LegalStatus.registered;
 
   // --- الصور ---
-  final List<File> _selectedImages = [];
+  final List<File> _selectedImages = []; // الصور الجديدة المضافة
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _loadExistingData();
+  }
+
+  /// تحميل بيانات العقار الحالي لملء الحقول
+  void _loadExistingData() {
+    final p = widget.property;
+
+    // تعيين القيم الأساسية
+    _priceController.text = p.price.toString();
+    _areaController.text = p.area.toString();
+    _descriptionController.text = p.description;
+
+    // تعيين الموقع
+    if (p.location != null) {
+      _countryController.text = p.location!.country;
+      _cityController.text = p.location!.city;
+      _regionController.text = p.location!.region;
+      _latController.text = p.location!.latitude?.toString() ?? '';
+      _lngController.text = p.location!.longitude?.toString() ?? '';
+    }
+
+    // تعيين الفئات (تحويل النص إلى enum)
+    _selectedCategory = Category.values.firstWhere(
+      (e) => e.name == p.category,
+      orElse: () => Category.residential,
+    );
+    _selectedTransaction = TransactionType.values.firstWhere(
+      (e) => e.name == p.transactionType,
+      orElse: () => TransactionType.sale,
+    );
+    _selectedOwnership = OwnershipType.values.firstWhere(
+      (e) => e.name == p.ownershipType,
+      orElse: () => OwnershipType.freehold,
+    );
+    _selectedLegalStatus = LegalStatus.values.firstWhere(
+      (e) => e.name == p.legalStatus,
+      orElse: () => LegalStatus.registered,
+    );
+
+    // تعيين التفاصيل حسب الفئة
+    if (p.residentialDetails != null) {
+      final d = p.residentialDetails!;
+      _bedroomsController.text = d.bedrooms.toString();
+      _bathroomsController.text = d.bathrooms.toString();
+      _floorsController.text = d.floors.toString();
+      _hasGarden = d.hasGarden;
+      _hasPool = d.hasPool;
+      _parkingSpaces = d.parkingSpaces;
+    }
+
+    if (p.commercialDetails != null) {
+      final d = p.commercialDetails!;
+      _commercialType = d.propertyType;
+      _floorNumberController.text = d.floorNumber.toString();
+      _hasElevator = d.hasElevator;
+      _meetingRoomsController.text = d.meetingRooms.toString();
+      _commercialParking = d.parkingSpaces;
+    }
+
+    if (p.industrialDetails != null) {
+      final d = p.industrialDetails!;
+      _warehouseSizeController.text = d.warehouseSize.toString();
+      _powerCapacityController.text = d.powerCapacity;
+      _ceilingHeightController.text = d.ceilingHeight.toString();
+      _loadingDocksController.text = d.loadingDocks.toString();
+    }
+
+    if (p.landDetails != null) {
+      final d = p.landDetails!;
+      _landType = d.landType;
+      _roadAccess = d.roadAccess;
+      _waterSource = d.waterSource;
+      _electricityAvailable = d.electricityAvailable;
+    }
+  }
+
+  @override
   void dispose() {
-    _priceController.dispose();
-    _areaController.dispose();
-    _descriptionController.dispose();
-    _countryController.dispose();
-    _cityController.dispose();
-    _regionController.dispose();
-    _bedroomsController.dispose();
-    _bathroomsController.dispose();
-    _floorsController.dispose();
-    _floorNumberController.dispose();
-    _meetingRoomsController.dispose();
-    _warehouseSizeController.dispose();
-    _powerCapacityController.dispose();
-    _ceilingHeightController.dispose();
-    _loadingDocksController.dispose();
+    // إتلاف جميع المتحكمات
+    final controllers = [
+      _priceController, _areaController, _descriptionController,
+      _countryController, _cityController, _regionController,
+      _latController, _lngController, _bedroomsController,
+      _bathroomsController, _floorsController, _floorNumberController,
+      _meetingRoomsController, _warehouseSizeController,
+      _powerCapacityController, _ceilingHeightController,
+      _loadingDocksController,
+    ];
+    for (var c in controllers) c.dispose();
     super.dispose();
   }
 
@@ -94,7 +175,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
   }
 
-  // --- بناء كائن البيانات لإرساله ---
+  // --- البحث عن الموقع ---
+  Future<void> _searchLocation() async {
+    final query = _cityController.text.trim();
+    if (query.isEmpty) return;
+    setState(() => _isLoading = true);
+    final results = await _nominatimService.searchLocation(query);
+    setState(() => _isLoading = false);
+    if (results.isNotEmpty) {
+      final first = results.first;
+      setState(() {
+        _countryController.text = first['country'] ?? '';
+        _cityController.text = first['city'] ?? '';
+        _regionController.text = first['region'] ?? '';
+        _latController.text = (first['lat'] ?? 0.0).toString();
+        _lngController.text = (first['lon'] ?? 0.0).toString();
+      });
+    }
+  }
+
+  // --- بناء كائن البيانات للتحديث ---
   Map<String, dynamic> _buildPropertyData() {
     final data = <String, dynamic>{
       'category': _selectedCategory.name,
@@ -108,6 +208,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         'country': _countryController.text,
         'city': _cityController.text,
         'region': _regionController.text.isNotEmpty ? _regionController.text : null,
+        'latitude': double.tryParse(_latController.text),
+        'longitude': double.tryParse(_lngController.text),
       },
     };
 
@@ -153,32 +255,27 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     return data;
   }
 
-  // --- حفظ البيانات ---
-  Future<void> _handleSave() async {
+  // --- حفظ التعديلات ---
+  Future<void> _handleUpdate() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedImages.isEmpty) {
-      _showSnack('الرجاء اختيار صورة واحدة على الأقل', Colors.orange);
-      return;
-    }
 
-    // تحقق إضافي حسب الفئة
-    if (_selectedCategory == Category.residential && _bedroomsController.text.isEmpty) {
-      _showSnack('يرجى إدخال عدد غرف النوم', Colors.orange);
-      return;
-    }
-
+    // الصور الجديدة اختيارية، لذا لا نلزم المستخدم بإضافة صور
     setState(() => _isLoading = true);
 
     try {
       final data = _buildPropertyData();
-      final success = await _propertyService.postPropertyWithImages(data, _selectedImages);
+      final success = await _propertyService.updateProperty(
+        widget.property.id,
+        data,
+        images: _selectedImages.isNotEmpty ? _selectedImages : null,
+      );
 
       if (mounted) {
         if (success) {
-          _showSnack('تمت إضافة العقار بنجاح!', Colors.green);
-          Navigator.pop(context);
+          _showSnack('تم تحديث العقار بنجاح!', Colors.green);
+          Navigator.pop(context, true); // إعلام الشاشة السابقة بالتحديث
         } else {
-          _showSnack('فشل حفظ العقار، حاول مجدداً', Colors.redAccent);
+          _showSnack('فشل تحديث العقار، حاول مجدداً', Colors.redAccent);
         }
       }
     } catch (e) {
@@ -194,13 +291,13 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     );
   }
 
-  // --- بناء الواجهة ---
+  // --- بناء الواجهة (نفس هيكل add_property مع تغيير العنوان) ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.secondaryDark,
       appBar: AppBar(
-        title: const Text('إضافة عقار جديد', style: TextStyle(fontFamily: 'Cairo')),
+        title: const Text('تعديل العقار', style: TextStyle(fontFamily: 'Cairo')),
         backgroundColor: AppTheme.primaryDark,
         centerTitle: true,
       ),
@@ -213,7 +310,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('صور العقار'),
+                    _buildSectionTitle('صور العقار (اختيارية للإضافة)'),
                     _buildImagePicker(),
                     const SizedBox(height: 24),
                     _buildSectionTitle('المعلومات الأساسية'),
@@ -223,9 +320,27 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     const SizedBox(height: 16),
                     _buildTextField(_countryController, 'الدولة', Icons.location_on),
                     const SizedBox(height: 16),
-                    _buildTextField(_cityController, 'المدينة', Icons.location_city),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField(_cityController, 'المدينة', Icons.location_city)),
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          onPressed: _searchLocation,
+                          style: IconButton.styleFrom(backgroundColor: AppTheme.goldAccent),
+                          icon: const Icon(Icons.saved_search, color: AppTheme.secondaryDark),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     _buildTextField(_regionController, 'المنطقة (اختياري)', Icons.map, optional: true),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField(_latController, 'خط العرض', Icons.gps_fixed, isNumber: true, disabled: true)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildTextField(_lngController, 'خط الطول', Icons.gps_fixed, isNumber: true, disabled: true)),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     _buildDropdowns(),
                     const SizedBox(height: 16),
@@ -242,8 +357,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     );
   }
 
-  // --- دوال مساعدة لبناء الواجهة ---
-
+  // --- دوال مساعدة لبناء الواجهة (نفسها من add_property) ---
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -269,7 +383,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
               children: [
                 Icon(Icons.add_a_photo_outlined, color: AppTheme.goldAccent, size: 40),
                 SizedBox(height: 8),
-                Text('اضغط لإضافة صور', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                Text('أضف صوراً جديدة (اختياري)', style: TextStyle(color: Colors.white38, fontSize: 12)),
               ],
             ),
           ),
@@ -283,9 +397,25 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
               itemCount: _selectedImages.length,
               itemBuilder: (ctx, i) => Padding(
                 padding: const EdgeInsets.only(left: 10),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(_selectedImages[i], width: 100, height: 100, fit: BoxFit.cover),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(_selectedImages[i], width: 100, height: 100, fit: BoxFit.cover),
+                    ),
+                    Positioned(
+                      top: 2,
+                      right: 6,
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedImages.removeAt(i)),
+                        child: Container(
+                          decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(Icons.close, size: 12, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -301,24 +431,30 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     bool isNumber = false,
     int maxLines = 1,
     bool optional = false,
+    bool disabled = false,
   }) {
-    return TextFormField(
-      controller: ctrl,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      maxLines: maxLines,
-      style: const TextStyle(color: AppTheme.textLight),
-      validator: (v) {
-        if (optional) return null;
-        if (v == null || v.isEmpty) return 'هذا الحقل مطلوب';
-        if (isNumber && double.tryParse(v) == null) return 'يجب إدخال رقم صحيح';
-        return null;
-      },
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppTheme.goldAccent),
-        filled: true,
-        fillColor: AppTheme.fieldBg,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: ctrl,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        maxLines: maxLines,
+        readOnly: disabled,
+        style: const TextStyle(color: AppTheme.textLight),
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: AppTheme.goldAccent),
+          filled: true,
+          fillColor: disabled ? Colors.black12 : AppTheme.fieldBg,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.goldAccent)),
+        ),
+        validator: (v) {
+          if (optional || disabled) return null;
+          if (v == null || v.isEmpty) return 'هذا الحقل مطلوب';
+          if (isNumber && double.tryParse(v) == null) return 'يجب إدخال رقم صحيح';
+          return null;
+        },
       ),
     );
   }
@@ -420,7 +556,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           decoration: const InputDecoration(labelText: 'نوع العقار التجاري', filled: true, fillColor: AppTheme.fieldBg, border: OutlineInputBorder(borderSide: BorderSide.none)),
         ),
         const SizedBox(height: 12),
-        _buildTextField(_floorNumberController, 'رقم الطابق', Icons.stairs, isNumber: true), // ✅ تم التصحيح: Icons.floor → Icons.floor_plan
+        _buildTextField(_floorNumberController, 'رقم الطابق', Icons.stairs, isNumber: true),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -513,18 +649,18 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: _handleSave,
+        onPressed: _handleUpdate,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.goldAccent,
           foregroundColor: AppTheme.secondaryDark,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: const Text('حفظ ونشر العقار', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        child: const Text('تحديث العقار', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  // --- دوال الترجمة ---
+  // --- دوال الترجمة (نفسها) ---
   String _categoryName(Category c) {
     const map = {
       Category.residential: 'سكني',
