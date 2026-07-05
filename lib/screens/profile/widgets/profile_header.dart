@@ -16,7 +16,7 @@ class ProfileHeader extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: AppTheme.goldAccent, width: 2),
-            boxShadow: [BoxShadow(color: AppTheme.goldAccent.withOpacity(0.2), blurRadius: 15, spreadRadius: 2)],
+            boxShadow: [BoxShadow(color: AppTheme.goldAccent.withValues(alpha: 0.2), blurRadius: 15, spreadRadius: 2)],
           ),
           child: CircleAvatar(
             radius: 55,

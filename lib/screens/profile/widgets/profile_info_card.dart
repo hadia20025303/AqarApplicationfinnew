@@ -21,7 +21,7 @@ class ProfileInfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.fieldBg,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [

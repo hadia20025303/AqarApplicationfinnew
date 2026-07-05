@@ -266,7 +266,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
             decoration: BoxDecoration(
               color: AppTheme.fieldBg,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.goldAccent.withOpacity(0.3)),
+              border: Border.all(color: AppTheme.goldAccent.withValues(alpha: 0.3), width: 1),
             ),
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,

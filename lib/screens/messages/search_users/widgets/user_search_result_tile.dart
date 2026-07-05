@@ -48,7 +48,7 @@ class UserSearchResultTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: AppTheme.goldAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: AppTheme.goldAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
       child: const Text('وكيل عقاري', style: TextStyle(color: AppTheme.goldAccent, fontSize: 10)),
     );
   }
@@ -56,7 +56,7 @@ class UserSearchResultTile extends StatelessWidget {
   Widget _buildChatIcon() {
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: AppTheme.goldAccent.withOpacity(0.1), shape: BoxShape.circle),
+      decoration: BoxDecoration(color: AppTheme.goldAccent.withValues(alpha: 0.1), shape: BoxShape.circle),
       child: const Icon(Icons.chat_bubble_outline, color: AppTheme.goldAccent, size: 20),
     );
   }

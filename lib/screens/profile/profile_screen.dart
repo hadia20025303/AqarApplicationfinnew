@@ -160,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildFooterText() {
     return Text(
       'شكرًا لكونك جزءًا من مجتمعنا العقاري',
-      style: TextStyle(color: AppTheme.textLight.withOpacity(0.3), fontSize: 11, fontStyle: FontStyle.italic),
+      style: TextStyle(color: AppTheme.textLight.withValues(alpha: 0.3), fontSize: 11, fontStyle: FontStyle.italic),
     );
   }
 
