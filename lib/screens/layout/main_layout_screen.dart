@@ -22,11 +22,11 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 
   // القائمة ثابتة لتحسين الأداء
   final List<Widget> _screens = const [
-    const HomeScreen(),
-    const FavoritesScreen(),
+    HomeScreen(),
+    FavoritesScreen(),
     AddPropertyScreen(),
-    const ConversationsScreen(),
-    const ProfileScreen(),
+    ConversationsScreen(),
+    ProfileScreen(),
   ];
 
   /// منطق التنقل والتحقق من تسجيل الدخول

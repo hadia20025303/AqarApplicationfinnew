@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../core/network/api_client.dart';
 import '../core/network/api_constants.dart';
@@ -152,10 +151,6 @@ Future<bool> postPropertyWithImages(Map<String, dynamic> data, List<File> images
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-
-      // طباعة للتصحيح (يمكن إزالتها في الإنتاج)
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       return response.statusCode == 201 || response.statusCode == 200;
     });

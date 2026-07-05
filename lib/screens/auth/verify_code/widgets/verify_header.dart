@@ -15,7 +15,7 @@ class VerifyHeader extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppTheme.goldAccent.withOpacity(0.4), width: 1.5),
+            border: Border.all(color: AppTheme.goldAccent.withValues(alpha: 0.4), width: 1.5),
           ),
           child: const Icon(Icons.mark_email_read_outlined, size: 60, color: AppTheme.goldAccent),
         ),

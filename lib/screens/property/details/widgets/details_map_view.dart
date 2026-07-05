@@ -28,7 +28,7 @@ class DetailsMapView extends StatelessWidget {
           height: 200,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.goldAccent.withOpacity(0.3)),
+            border: Border.all(color: AppTheme.goldAccent.withValues(alpha: 0.3)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
