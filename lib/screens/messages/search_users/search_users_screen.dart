@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../services/property_service.dart';
 import '../../../services/messaging_service.dart';
 import '../../../theme/app_theme.dart';
-import '../../../providers/auth_provider.dart';
 
 import 'widgets/user_search_bar.dart';
 import 'widgets/user_search_result_tile.dart';

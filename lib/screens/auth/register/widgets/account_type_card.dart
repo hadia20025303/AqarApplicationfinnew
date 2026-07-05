@@ -29,7 +29,7 @@ class AccountTypeCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         width: double.infinity,
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.goldAccent.withOpacity(0.15) : AppTheme.fieldBg,
+          color: isSelected ? AppTheme.goldAccent.withValues(alpha: 0.15) : AppTheme.fieldBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppTheme.goldAccent : Colors.transparent,

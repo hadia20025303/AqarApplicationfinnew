@@ -22,7 +22,7 @@ class DetailsOwnerCard extends StatelessWidget {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 30, backgroundColor: AppTheme.goldAccent.withOpacity(0.2),
+                  radius: 30, backgroundColor: AppTheme.goldAccent.withValues(alpha: 0.2),
                   child: const Icon(Icons.person, size: 30, color: AppTheme.goldAccent),
                 ),
                 const SizedBox(width: 16),

@@ -16,7 +16,7 @@ class FavoritesErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.redAccent.withOpacity(0.6)),
+            Icon(Icons.error_outline, size: 64, color: Colors.redAccent.withValues(alpha: 0.6)),
             const SizedBox(height: 16),
             Text(error, style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center),
             const SizedBox(height: 24),

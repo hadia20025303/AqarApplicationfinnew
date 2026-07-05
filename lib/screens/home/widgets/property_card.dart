@@ -70,7 +70,7 @@ class PropertyCard extends StatelessWidget {
           Text(
             property.description.isNotEmpty ? property.description : 'لا يوجد وصف متوفر.',
             maxLines: 2, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: AppTheme.textLight.withOpacity(0.4), fontSize: 12, height: 1.6, fontFamily: 'Cairo'),
+            style: TextStyle(color: AppTheme.textLight.withValues(alpha: 0.4), fontSize: 12, height: 1.6, fontFamily: 'Cairo'),
           ),
         ],
       ),
