@@ -26,7 +26,7 @@ class AuthService extends ApiClient {
   }
 
   /// 2. تسجيل الخروج وحذف البيانات المحلية
-  Future<void> logout() async {
+  Future<bool> logout() async {
     try {
       final refresh = await _storage.read(key: 'refresh_token');
       if (refresh != null) {
@@ -39,6 +39,8 @@ class AuthService extends ApiClient {
     } finally {
       // الحذف محلياً يتم دائماً حتى لو فشل طلب السيرفر
       await _storage.deleteAll();
+      return true;
+      
     }
   }
 

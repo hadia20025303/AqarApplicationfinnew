@@ -1,10 +1,12 @@
 /// الموديل الرئيسي للعقار - نسخة معدلة لحل مشكلة النوع (String vs num)
-class PaginatedResponse<T> {
-  final List<T> items;
-  final int total;
-  final String? nextPageUrl;
+class PaginatedProperties {
+  final List<PropertyCardModel> properties;
+  final String? nextUrl;
+  final int? count;
 
-  PaginatedResponse({required this.items, required this.total, this.nextPageUrl});
+  PaginatedProperties({required this.properties, this.nextUrl, this.count});
+
+  bool get hasMore => nextUrl != null && nextUrl!.isNotEmpty;
 }
 class PropertyCardModel {
   

@@ -29,36 +29,49 @@ class PropertyService extends ApiClient {
   }
 
   /// 1. جلب العقارات (بدون تغيير)
-  Future<List<PropertyCardModel>> getProperties({Map<String, String>? filters}) async {
-    try {
-      Uri uri = Uri.parse(ApiConstants.properties);
-      Map<String, String> cleanFilters = {};
-      if (filters != null) {
-        filters.forEach((key, value) {
-          if (value.isNotEmpty && value != 'all' && value != 'null') {
-            cleanFilters[key] = value;
-          }
-        });
-      }
-      if (cleanFilters.isNotEmpty) uri = uri.replace(queryParameters: cleanFilters);
-
-      final response = await http.get(uri, headers: await getHeaders()).timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 200) {
-        final dynamic decodedData = jsonDecode(utf8.decode(response.bodyBytes));
-        List<dynamic> list = [];
-        if (decodedData is Map && decodedData.containsKey('results')) {
-          list = decodedData['results'] as List? ?? [];
-        } else if (decodedData is List) {
-          list = decodedData;
+Future<PaginatedProperties> getProperties({
+  Map<String, String>? filters,
+  int page = 1,
+  int pageSize = 12,
+}) async {
+  try {
+    Uri uri = Uri.parse(ApiConstants.properties);
+    Map<String, String> cleanFilters = {};
+    if (filters != null) {
+      filters.forEach((key, value) {
+        if (value.isNotEmpty && value != 'all' && value != 'null') {
+          cleanFilters[key] = value;
         }
-        return list.map((json) => PropertyCardModel.fromJson(json)).toList();
-      }
-      return [];
-    } catch (e) {
-      return [];
+      });
     }
+    // إضافة معاملات الترحيل
+    cleanFilters['page'] = page.toString();
+    cleanFilters['page_size'] = pageSize.toString();
+    uri = uri.replace(queryParameters: cleanFilters);
+
+    final response = await http.get(uri, headers: await getHeaders()).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      final List<dynamic> results = decoded['results'] ?? [];
+      final String? nextUrl = decoded['next'];
+      final int? count = decoded['count'];
+
+      final List<PropertyCardModel> properties = results
+          .map((json) => PropertyCardModel.fromJson(json))
+          .toList();
+
+      return PaginatedProperties(
+        properties: properties,
+        nextUrl: nextUrl,
+        count: count,
+      );
+    }
+    return PaginatedProperties(properties: [], nextUrl: null, count: 0);
+  } catch (e) {
+    return PaginatedProperties(properties: [], nextUrl: null, count: 0);
   }
+}
 
 Future<PropertyModel> getProperty(int id) async {
   try {
