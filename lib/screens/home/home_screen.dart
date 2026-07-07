@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/property_model.dart';
 import '../../../models/filter_model.dart';
-import '../../../services/property_service.dart'; // استخدام الخدمة الجديدة
+import '../../../services/property_service.dart';
 import '../../../theme/app_theme.dart';
 
 import 'widgets/home_header.dart';
@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final PropertyService _propertyService = PropertyService();
   PropertyFilter _currentFilter = PropertyFilter();
-  late Future<List<PropertyModel>> _propertiesFuture;
+  late Future<List<PropertyCardModel>> _propertiesFuture;
 
   @override
   void initState() {
@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: RefreshIndicator(
                   onRefresh: () async { _fetchProperties(); await _propertiesFuture; },
                   color: AppTheme.goldAccent,
-                  child: FutureBuilder<List<PropertyModel>>(
+                  child: FutureBuilder<List<PropertyCardModel>>(
                     future: _propertiesFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {

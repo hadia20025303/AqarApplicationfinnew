@@ -1,4 +1,51 @@
 /// الموديل الرئيسي للعقار - نسخة معدلة لحل مشكلة النوع (String vs num)
+class PaginatedResponse<T> {
+  final List<T> items;
+  final int total;
+  final String? nextPageUrl;
+
+  PaginatedResponse({required this.items, required this.total, this.nextPageUrl});
+}
+class PropertyCardModel {
+  
+  final int id;
+  final String category;
+  final String transactionType;
+  final double price;
+  final double area;
+  final String description;
+  final String coverImageUrl;
+  final PropertyLocation? location;
+
+  PropertyCardModel({
+    required this.id,
+    required this.category,
+    required this.transactionType,
+    required this.price,
+    required this.area,
+    required this.description,
+    required this.coverImageUrl,
+    this.location,
+  });
+
+  factory PropertyCardModel.fromJson(Map<String, dynamic> json) {
+    return PropertyCardModel(
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      category: (json['category'] ?? '').toString(),
+      transactionType: (json['transaction_type'] ?? '').toString(),
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      area: double.tryParse(json['area']?.toString() ?? '0') ?? 0.0,
+      description: (json['description'] ?? '').toString(),
+      coverImageUrl: (json['cover_image'] ?? '').toString().isNotEmpty
+          ? (json['cover_image'] ?? '').toString()
+          : '',
+      location: json['location'] != null
+          ? PropertyLocation.fromJson(json['location'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+}
+
 class PropertyModel {
   final int id;
   final int ownerId;
@@ -54,7 +101,6 @@ class PropertyModel {
       legalStatus: (json['legal_status'] ?? '').toString(),
       transactionType: (json['transaction_type'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
-
       // معالجة السعر والمساحة بشكل آمن جداً
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
       area: double.tryParse(json['area']?.toString() ?? '0') ?? 0.0,

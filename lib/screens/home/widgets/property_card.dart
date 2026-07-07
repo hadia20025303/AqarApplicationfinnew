@@ -3,20 +3,50 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../models/property_model.dart';
 import '../../../../theme/app_theme.dart';
 import '../../property/details/property_details_screen.dart';
+import '../../../services/property_service.dart';
+
 
 
 class PropertyCard extends StatelessWidget {
-  final PropertyModel property;
+  final PropertyCardModel property;
 
   const PropertyCard({super.key, required this.property});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)),
+onTap: () async {
+  // عرض مؤشر تحميل (اختياري)
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const Center(child: CircularProgressIndicator()),
+  );
+
+  try {
+    // جلب البيانات الكاملة للعقار باستخدام الـ ID
+    final propertyService = PropertyService(); // أو استخدم حقنة التبعيات
+    final fullProperty = await propertyService.getProperty(property.id);
+
+    // إغلاق مؤشر التحميل
+    Navigator.pop(context); // إغلاق الـ Dialog
+
+    // الانتقال إلى شاشة التفاصيل مع تمرير البيانات المستلمة
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PropertyDetailsScreen(property: fullProperty),
       ),
+    );
+  } catch (e) {
+    // إغلاق مؤشر التحميل
+    Navigator.pop(context);
+    // عرض رسالة خطأ
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('فشل تحميل البيانات: $e')),
+    );
+  }
+},
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -38,9 +68,9 @@ class PropertyCard extends StatelessWidget {
   Widget _buildImageHeader() {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      child: property.images.isNotEmpty
+      child: property.coverImageUrl.isNotEmpty
           ? CachedNetworkImage(
-        imageUrl: property.images[0].imageUrl,
+        imageUrl: property.coverImageUrl,
         height: 200,
         width: double.infinity,
         fit: BoxFit.cover,
@@ -84,7 +114,7 @@ class PropertyCard extends StatelessWidget {
         const SizedBox(width: 4),
         Expanded(
           child: Text(
-            property.location != null ? '${property.location!.city}، ${property.location!.region} - حي ${property.location!.neighborhood}' : 'الموقع غير محدد',
+            property.location != null ? '${property.location!.country}، ${property.location!.city}' : 'الموقع غير محدد',
             style: TextStyle(color: property.location != null ? Colors.white60 : Colors.white38, fontSize: 13, fontFamily: 'Cairo', overflow: TextOverflow.ellipsis),
           ),
         ),

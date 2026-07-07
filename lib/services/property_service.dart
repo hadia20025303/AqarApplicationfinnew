@@ -29,7 +29,7 @@ class PropertyService extends ApiClient {
   }
 
   /// 1. جلب العقارات (بدون تغيير)
-  Future<List<PropertyModel>> getProperties({Map<String, String>? filters}) async {
+  Future<List<PropertyCardModel>> getProperties({Map<String, String>? filters}) async {
     try {
       Uri uri = Uri.parse(ApiConstants.properties);
       Map<String, String> cleanFilters = {};
@@ -52,13 +52,32 @@ class PropertyService extends ApiClient {
         } else if (decodedData is List) {
           list = decodedData;
         }
-        return list.map((json) => PropertyModel.fromJson(json)).toList();
+        return list.map((json) => PropertyCardModel.fromJson(json)).toList();
       }
       return [];
     } catch (e) {
       return [];
     }
   }
+
+Future<PropertyModel> getProperty(int id) async {
+  try {
+    final uri = Uri.parse('${ApiConstants.properties}$id/');
+    final response = await http.get(uri, headers: await getHeaders()).timeout(const Duration(seconds: 15));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      return PropertyModel.fromJson(json);
+    } else {
+      throw Exception('Failed to load property: ${response.statusCode}');
+    }
+  } catch (e) {
+    // Handle error appropriately, maybe rethrow or return a default?
+    // But since it's a Future<PropertyModel>, you cannot return null unless you make it nullable.
+    // Better to throw or handle.
+    rethrow; // or throw Exception('Failed to load property: $e');
+  }
+}
+
 
   /// 2. جلب قائمة المفضلات (تعديل: تحديث الكاش تلقائياً)
   Future<List<PropertyModel>> getFavorites() async {
