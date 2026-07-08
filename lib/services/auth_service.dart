@@ -143,14 +143,16 @@ class AuthService extends ApiClient {
   }
 
   /// 8. تسجيل مستخدم جديد
-  Future<Map<String, dynamic>> register({
-    required String username,
-    required String email,
-    required String password,
-    required String password2,
-    String? phone,
-    String accountType = 'normal',
-  }) async {
+/// 8. تسجيل مستخدم جديد
+Future<Map<String, dynamic>> register({
+  required String username,
+  required String email,
+  required String password,
+  required String password2,
+  String? phone,
+  String accountType = 'normal',
+}) async {
+  try {
     final response = await request(() => http.post(
       Uri.parse(ApiConstants.register),
       headers: {'Content-Type': 'application/json'},
@@ -163,8 +165,44 @@ class AuthService extends ApiClient {
         'account_type': accountType,
       }),
     ));
-    return jsonDecode(response.body);
+    
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return {'message': data['message'] ?? 'تم التسجيل بنجاح'};
+    } 
+    
+    // معالجة أخطاء Django REST Framework (status 400)
+    if (response.statusCode == 400) {
+      Map<String, dynamic> fieldErrors = {};
+      
+      data.forEach((key, value) {
+        if (value is List) {
+          fieldErrors[key] = value.join(', ');
+        } else if (value is String) {
+          fieldErrors[key] = value;
+        } else if (value is Map) {
+          value.forEach((subKey, subValue) {
+            if (subValue is List) {
+              fieldErrors['$key.$subKey'] = subValue.join(', ');
+            } else {
+              fieldErrors['$key.$subKey'] = subValue.toString();
+            }
+          });
+        } else {
+          fieldErrors[key] = value.toString();
+        }
+      });
+      
+      return {'errors': fieldErrors};
+    }
+    
+    return {'error': data['message'] ?? data['detail'] ?? 'حدث خطأ أثناء التسجيل'};
+    
+  } catch (e) {
+    return {'error': 'حدث خطأ في الاتصال بالخادم'};
   }
+}
 
   /// 9. تفعيل الحساب وتأكيد الـ OTP
   Future<Map<String, dynamic>> verifyCode(String email, String code) async {
@@ -183,6 +221,9 @@ class AuthService extends ApiClient {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     ));
-    return jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return {'message': 'تم إرسال رمز التفعيل بنجاح إلى بريدك الإلكتروني'};
+    } else {
+      return {'error': 'فشل إعادة إرسال رمز التفعيل. حاول مرة أخرى لاحقاً.'};
+    } }
   }
-}
