@@ -119,7 +119,13 @@ class AuthService extends ApiClient {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     ));
+    if(response.statusCode >= 200 && response.statusCode < 300) {
     return jsonDecode(response.body);
+        }
+    else{
+      return {'error': jsonDecode(response.body)['message'] ?? 'حدث خطأ أثناء تأكيد إعادة تعيين كلمة المرور'};
+
+    }
   }
 
   /// 7. تأكيد تغيير كلمة المرور
@@ -139,10 +145,15 @@ class AuthService extends ApiClient {
         'new_password2': newPassword2,
       }),
     ));
+    if(response.statusCode >= 200 && response.statusCode < 300) {
     return jsonDecode(response.body);
-  }
+        }
+    else{
+      return {'error': jsonDecode(response.body)['message'] ?? 'حدث خطأ أثناء تأكيد إعادة تعيين كلمة المرور'};
 
-  /// 8. تسجيل مستخدم جديد
+    }
+    }
+
 /// 8. تسجيل مستخدم جديد
 Future<Map<String, dynamic>> register({
   required String username,

@@ -1,4 +1,3 @@
-// widgets/email_form_field.dart
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../validators/email_validator.dart';
@@ -20,8 +19,10 @@ class EmailFormField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.emailAddress,
-      validator: validator ?? EmailValidator.validate, // التحقق الافتراضي
+      // ⬇️ استخدام EmailValidator كـ Validator افتراضي
+      validator: validator ?? EmailValidator.validate,
       onChanged: onChanged,
+      style: const TextStyle(color: AppTheme.textLight),
       decoration: InputDecoration(
         labelText: 'البريد الإلكتروني',
         labelStyle: const TextStyle(color: Colors.white60),
@@ -34,18 +35,22 @@ class EmailFormField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.goldAccent),
+          borderSide: const BorderSide(color: AppTheme.goldAccent, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
         ),
-        // إظهار رسالة الخطأ أسفل الحقل
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
         errorStyle: const TextStyle(
           color: Colors.redAccent,
           fontSize: 12,
           fontFamily: 'Cairo',
         ),
+        errorMaxLines: 2,
       ),
     );
   }

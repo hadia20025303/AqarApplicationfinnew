@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import '../../../../models/property_model.dart';
 import '../../../../services/property_service.dart';
 import '../../../../theme/app_theme.dart';
-import 'widgets/property_card.dart'; 
+import 'widgets/property_card.dart';
+import '../add_property_screen.dart';
 
 class MyPropertiesScreen extends StatefulWidget {
   const MyPropertiesScreen({super.key});
@@ -15,8 +16,7 @@ class MyPropertiesScreen extends StatefulWidget {
 
 class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
   final PropertyService _propertyService = PropertyService();
-  // ✅ تم اعتماد اسم المتغير الموحد _properties لحل مشكلة Undefined name
-  List<PropertyModel> _properties = []; 
+  List<PropertyModel> _properties = [];
   bool _isLoading = true;
   String? _error;
 
@@ -45,8 +45,23 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
     }
   }
 
-  // ✅ تم اعتماد اسم الدالة الموحد _confirmDelete لحل مشكلة undefined_method
-// 🗑️ دالة تأكيد الحذف المصححة بالكامل
+  // ⬇️ دالة للانتقال إلى صفحة إضافة عقار وإعادة التحميل عند العودة
+  Future<void> _navigateToAddProperty() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddPropertyScreen(
+          onPropertyAdded: () => _loadProperties(), // إعادة تحميل القائمة بعد الإضافة
+        ),
+      ),
+    );
+    // إذا تم إضافة عقار بنجاح، نعيد التحميل
+    if (result == true) {
+      _loadProperties();
+    }
+  }
+
+  // ✅ دالة تأكيد الحذف
   Future<void> _confirmDelete(int propertyId) async {
     final bool? confirm = await showDialog<bool>(
       context: context,
@@ -59,13 +74,11 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              // ✅ تم الإصلاح: نقل اللون ليصبح داخل الـ TextStyle
               child: const Text('إلغاء', style: TextStyle(color: Colors.white38, fontFamily: 'Cairo')),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-              // ✅ تم الإصلاح: نقل اللون ليصبح داخل الـ TextStyle
               child: const Text('حذف الآن', style: TextStyle(color: Colors.white, fontFamily: 'Cairo')),
             ),
           ],
@@ -82,7 +95,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('تم حذف العقار من النظام بنجاح 🗑️'), backgroundColor: Colors.green),
           );
-          _loadProperties(); 
+          _loadProperties();
         } else {
           setState(() => _isLoading = false);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -93,16 +106,16 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
     }
   }
 
-  // ✅ تم اعتماد اسم الدالة الموحد _navigateToEdit لحل مشكلة undefined_method
-Future<void> _navigateToEdit(PropertyModel property) async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => EditPropertyScreen(property: property),
-    ),
-  );
-  if (result == true) _loadProperties();
-}
+  // ✅ دالة الانتقال إلى صفحة التعديل
+  Future<void> _navigateToEdit(PropertyModel property) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPropertyScreen(property: property),
+      ),
+    );
+    if (result == true) _loadProperties();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +132,20 @@ Future<void> _navigateToEdit(PropertyModel property) async {
         body: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppTheme.goldAccent))
             : _buildBody(),
+        // ⬇️ إضافة الزر العائم الذهبي
+        floatingActionButton: FloatingActionButton(
+          onPressed: _navigateToAddProperty,
+          backgroundColor: AppTheme.goldAccent,
+          foregroundColor: AppTheme.secondaryDark,
+          elevation: 6,
+          shape: const CircleBorder(),
+          tooltip: 'إضافة عقار جديد',
+          child: const Icon(
+            Icons.add,
+            size: 32,
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }
@@ -128,11 +155,34 @@ Future<void> _navigateToEdit(PropertyModel property) async {
       return Center(child: Text('خطأ: $_error', style: const TextStyle(color: Colors.redAccent, fontFamily: 'Cairo')));
     }
     if (_properties.isEmpty) {
-      // ✅ تم إصلاح تحذير withOpacity المحتمل هنا باستبداله بـ withValues
       return Center(
-        child: Text(
-          'لا توجد عقارات مسجلة لك حالياً', 
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontFamily: 'Cairo', fontSize: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.house_outlined,
+              size: 80,
+              color: Colors.white.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد عقارات مسجلة لك حالياً',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontFamily: 'Cairo',
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'اضغط على الزر الذهبي لإضافة عقار جديد',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.4),
+                fontFamily: 'Cairo',
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -143,7 +193,6 @@ Future<void> _navigateToEdit(PropertyModel property) async {
       itemBuilder: (context, index) {
         final property = _properties[index];
         
-        // ✅ استدعاء الـ PropertyCard المطور وتمرير المتغيرات والدوال المتطابقة بنجاح
         return PropertyCard(
           property: property,
           onEdit: () => _navigateToEdit(property),
