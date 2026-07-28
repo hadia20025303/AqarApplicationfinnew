@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:untitled2/services/auth_service.dart';
 import '../../../services/messaging_service.dart';
 import '../../../theme/app_theme.dart';
-
 import 'widgets/user_search_bar.dart';
 import 'widgets/user_search_result_tile.dart';
 import 'widgets/search_states_widgets.dart';
