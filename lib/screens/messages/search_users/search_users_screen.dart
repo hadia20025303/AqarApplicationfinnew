@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../services/property_service.dart';
+import 'package:untitled2/services/auth_service.dart';
 import '../../../services/messaging_service.dart';
 import '../../../theme/app_theme.dart';
 
@@ -15,7 +15,7 @@ class SearchUsersScreen extends StatefulWidget {
 }
 
 class _SearchUsersScreenState extends State<SearchUsersScreen> {
-  final PropertyService _userService = PropertyService();
+  final AuthService _userService = AuthService();
   final MessagingService _messagingService = MessagingService();
   final TextEditingController _searchController = TextEditingController();
   final _formKey = GlobalKey<FormState>();

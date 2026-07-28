@@ -217,23 +217,6 @@ Future<bool> postPropertyWithImages(Map<String, dynamic> data, List<File> images
   });
 }
 
-
-  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
-    return await _guardedRequest(() async {
-      final response = await request(() async => http.get(Uri.parse("${ApiConstants.searchUsers}?q=$query"), headers: await getHeaders(isProtected: true)));
-      final data = handleResponse(response);
-      return (data is List) ? data.map((e) => e as Map<String, dynamic>).toList() : [];
-    });
-  }
-
-  Future<UserModel?> getPublicProfile(String username) async {
-    try {
-      final response = await request(() async => http.get(Uri.parse("${ApiConstants.baseUrl}/users/profile/$username/"), headers: await getHeaders()));
-    return UserModel.fromJson(handleResponse(response));
-    } catch (e) {
-    return null;
-    }
-  }
 Future<List<PropertyModel>> getMyListings() async {
   try {
     final response = await _guardedRequest(() async {

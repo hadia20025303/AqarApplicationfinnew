@@ -7,7 +7,17 @@ import '../models/user_model.dart';
 
 class AuthService extends ApiClient {
   final _storage = const FlutterSecureStorage();
-
+  Future<T> _guardedRequest<T>(Future<T> Function() fn) async {
+    try {
+      return await fn();
+    } catch (e) {
+      if (e is http.Response && e.statusCode == 401) {
+        final success = await refreshAccessToken();
+        if (success) return await fn();
+      }
+      rethrow;
+    }
+  }
   /// 1. تسجيل الدخول وحفظ التوكنز
   Future<bool> login(String username, String password) async {
     final response = await request(() => http.post(
@@ -237,4 +247,13 @@ Future<Map<String, dynamic>> register({
     } else {
       return {'error': 'فشل إعادة إرسال رمز التفعيل. حاول مرة أخرى لاحقاً.'};
     } }
+
+    Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    return await _guardedRequest(() async {
+      final response = await request(() async => http.get(Uri.parse("${ApiConstants.searchUsers}?q=$query"), headers: await getHeaders(isProtected: true)));
+      final data = handleResponse(response);
+      return (data is List) ? data.map((e) => e as Map<String, dynamic>).toList() : [];
+    });
+  }
+
   }
