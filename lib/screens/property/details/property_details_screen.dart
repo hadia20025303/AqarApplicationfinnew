@@ -120,19 +120,29 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     }
   }
 
-  // --- إجراءات الأزرار (Actions) ---
 
   Future<void> _callOwner() async {
+    // 1. تنظيف رقم الهاتف من أي مسافات زائدة
     String phone = _ownerPhone.trim();
+
+    // 2. التحقق من وجود رقم حقيقي
     if (phone.isEmpty || phone == '0500000000') {
       _showSnack('رقم المالك غير متوفر حالياً', Colors.orange);
       return;
     }
-    final phoneUri = Uri(scheme: 'tel', path: phone);
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
-    } else {
-      _showSnack('لا يمكن فتح تطبيق الهاتف', Colors.redAccent);
+
+    // 3. بناء الرابط الخاص بتطبيق الهاتف
+    final Uri phoneUri = Uri(scheme: 'tel', path: phone);
+
+    try {
+      // 4. محاولة فتح تطبيق الاتصال
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        _showSnack('لا يمكن فتح تطبيق الهاتف على هذا الجهاز', Colors.redAccent);
+      }
+    } catch (e) {
+      _showSnack('حدث خطأ أثناء محاولة الاتصال', Colors.redAccent);
     }
   }
 

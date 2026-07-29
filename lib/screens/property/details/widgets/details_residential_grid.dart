@@ -34,7 +34,7 @@ class DetailsResidentialGrid extends StatelessWidget {
 
   Widget _buildItem(IconData icon, String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(color: AppTheme.fieldBg, borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [

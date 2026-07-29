@@ -38,6 +38,7 @@ class BaseInfoFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        const SizedBox(height: 16),
         DropdownButtonFormField<Category>(
           value: selectedCategory,
           dropdownColor: AppTheme.primaryDark,
@@ -74,7 +75,7 @@ class BaseInfoFields extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'الحالة القانونية', filled: true, fillColor: AppTheme.fieldBg),
         ),
         const SizedBox(height: 16),
-        PropertyTextField(controller: priceCtrl, label: 'السعر (ريال)', icon: Icons.attach_money, isNumber: true),
+        PropertyTextField(controller: priceCtrl, label: 'السعر', icon: Icons.attach_money, isNumber: true),
         const SizedBox(height: 16),
         PropertyTextField(controller: areaCtrl, label: 'المساحة (م²)', icon: Icons.crop_square, isNumber: true),
         const SizedBox(height: 16),

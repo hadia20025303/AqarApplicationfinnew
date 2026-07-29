@@ -251,7 +251,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         }
       }
     } catch (e) {
-      _showSnack('حدث خطأ: ${e.toString()}', Colors.redAccent);
+      _showSnack('حدث خطأ اثناء الاتصال بالخادم', Colors.redAccent);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

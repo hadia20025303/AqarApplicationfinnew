@@ -34,6 +34,7 @@ class LocationImagesFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 16),
         PropertyTextField(controller: countryCtrl, label: 'الدولة', icon: Icons.location_on),
         const SizedBox(height: 16),
         PropertyTextField(controller: cityCtrl, label: 'المدينة', icon: Icons.location_city),
