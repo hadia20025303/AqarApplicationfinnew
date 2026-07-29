@@ -36,7 +36,10 @@ class UserSearchBar extends StatelessWidget {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                validator: (value) => (value == null || value.trim().isEmpty) ? 'الرجاء إدخال نص للبحث' : null,
+                validator: (value) =>
+                    (value == null || value.trim().isEmpty)
+                        ? 'الرجاء إدخال نص للبحث'
+                        : null,
                 onFieldSubmitted: (_) => onSearch(),
               ),
             ),
@@ -46,7 +49,9 @@ class UserSearchBar extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.goldAccent,
                 foregroundColor: AppTheme.secondaryDark,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text('بحث'),
             ),

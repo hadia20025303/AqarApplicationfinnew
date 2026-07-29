@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:untitled2/screens/messages/search_users/search_users_screen.dart';
+import 'package:provider/provider.dart';
 import '../../../models/conversation_model.dart';
 import '../../../services/messaging_service.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../theme/app_theme.dart';
 import 'chat_screen.dart';
+import 'search_users/search_users_screen.dart';
 import 'widgets/conversation_tile.dart';
 import 'widgets/messages_empty_state.dart';
 
@@ -21,21 +23,58 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadConversations();
+    _checkAuthAndLoad();
   }
 
+  /// التحقق من تسجيل الدخول قبل تحميل المحادثات
+  void _checkAuthAndLoad() {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isLoggedIn) {
+      _loadConversations();
+    } else {
+      // إذا لم يكن مسجلاً، نعرض قائمة فارغة مع رسالة
+      _conversationsFuture = Future.value([]);
+    }
+  }
+
+  /// تحميل المحادثات (بدون setState غير ضروري)
   void _loadConversations() {
-    setState(() {
-      _conversationsFuture = _messagingService.fetchConversations();
-    });
+    _conversationsFuture = _messagingService.fetchConversations();
   }
 
+  /// فتح شاشة البحث عن مستخدمين
   Future<void> _openSearchUsers() async {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => const SearchUsersScreen()),
     );
-    if (result == true) _loadConversations();
+    // إذا عاد المستخدم بعد بدء محادثة جديدة، نحدّث القائمة
+    if (result == true) {
+      _loadConversations();
+    }
+  }
+
+  /// معالجة النقر على محادثة
+  Future<void> _handleConversationTap(ConversationModel conv) async {
+    // وضع علامة مقروءة وانتظار النتيجة (تحسين)
+    await _messagingService.markConversationRead(conv.id);
+
+    // الانتقال إلى شاشة الدردشة
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          conversationId: conv.id,
+          otherUser: conv.otherUser,
+        ),
+      ),
+    );
+
+    // تحديث القائمة دائماً بعد العودة (سواء أرسل رسالة أم لا)
+    // لكن نمنع التحديث إذا كان السبب هو العودة من شاشة الدردشة بدون تغيير
+    // يمكننا تحديثها دائماً، أو استخدام result لتحديد إذا كان هناك تغيير.
+    // هنا سنحدث دائماً، لأن قراءة الرسائل قد تغير العداد.
+    _loadConversations();
   }
 
   @override
@@ -54,13 +93,21 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => _loadConversations(),
+        onRefresh: () async {
+          _loadConversations();
+          // ننتظر حتى يتم تحميل المستقبل (لكننا لا نستخدم await هنا،
+          // يمكننا استخدام FutureBuilder لإعادة البناء)
+          // بدلاً من ذلك، نستخدم setState لإعادة بناء FutureBuilder
+          setState(() {});
+        },
         color: AppTheme.goldAccent,
         child: FutureBuilder<List<ConversationModel>>(
           future: _conversationsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: AppTheme.goldAccent));
+              return const Center(
+                child: CircularProgressIndicator(color: AppTheme.goldAccent),
+              );
             }
 
             if (snapshot.hasError) {
@@ -70,6 +117,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
             final conversations = snapshot.data ?? [];
 
             if (conversations.isEmpty) {
+              // إذا كانت القائمة فارغة، نعرض حالة فارغة مع خيار بدء محادثة
               return MessagesEmptyState(onStartSearch: _openSearchUsers);
             }
 
@@ -89,27 +137,24 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
     );
   }
 
-  // --- Logic Helpers ---
-
-  Future<void> _handleConversationTap(ConversationModel conv) async {
-    _messagingService.markConversationRead(conv.id);
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatScreen(conversationId: conv.id, otherUser: conv.otherUser),
-      ),
-    );
-    if (result == true) _loadConversations();
-  }
-
   Widget _buildErrorState(String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('حدث خطأ: $error', style: const TextStyle(color: Colors.white70)),
+          Text(
+            'حدث خطأ: $error',
+            style: const TextStyle(color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: _loadConversations, child: const Text('إعادة المحاولة')),
+          ElevatedButton(
+            onPressed: () {
+              _loadConversations();
+              setState(() {});
+            },
+            child: const Text('إعادة المحاولة'),
+          ),
         ],
       ),
     );

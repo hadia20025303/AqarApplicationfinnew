@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../models/conversation_model.dart';
 import '../../../../theme/app_theme.dart';
 
@@ -25,12 +26,16 @@ class ConversationTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // الصورة الشخصية
+            // الصورة الشخصية مع استخدام CachedNetworkImageProvider
             CircleAvatar(
               radius: 24,
               backgroundColor: AppTheme.primaryDark,
-              backgroundImage: otherUser.avatar != null ? NetworkImage(otherUser.avatar!) : null,
-              child: otherUser.avatar == null ? const Icon(Icons.person, color: Colors.white) : null,
+              backgroundImage: otherUser.avatar != null
+                  ? CachedNetworkImageProvider(otherUser.avatar!)
+                  : null,
+              child: otherUser.avatar == null
+                  ? const Icon(Icons.person, color: Colors.white)
+                  : null,
             ),
             const SizedBox(width: 12),
 
@@ -41,7 +46,10 @@ class ConversationTile extends StatelessWidget {
                 children: [
                   Text(
                     otherUser.username,
-                    style: const TextStyle(color: AppTheme.textLight, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: AppTheme.textLight,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -49,7 +57,9 @@ class ConversationTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: conversation.unreadCount > 0 ? AppTheme.goldAccent : Colors.white60,
+                      color: conversation.unreadCount > 0
+                          ? AppTheme.goldAccent
+                          : Colors.white60,
                       fontSize: 13,
                     ),
                   ),
@@ -61,10 +71,17 @@ class ConversationTile extends StatelessWidget {
             if (conversation.unreadCount > 0)
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(color: AppTheme.goldAccent, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: AppTheme.goldAccent,
+                  shape: BoxShape.circle,
+                ),
                 child: Text(
                   '${conversation.unreadCount}',
-                  style: const TextStyle(color: AppTheme.secondaryDark, fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(
+                    color: AppTheme.secondaryDark,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
 
